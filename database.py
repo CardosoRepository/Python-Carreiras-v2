@@ -1,8 +1,19 @@
-from sqlalchemy import create_engine
+import os
 
-string_conexao = 'mysql+pymysql://root:123456@127.0.0.1:3306/carreira_python?charset=utf8mb4'
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
+
+load_dotenv()
+
+string_conexao = os.getenv("db_conexao_string")
 engine = create_engine(string_conexao)
 
-with engine.connect() as conn:
-  resultado = conn.execute(text("select * from vagas"))
-  print(resultado.all())
+def carrega_vagas_db():
+	with engine.connect() as conn:
+		resultado = conn.execute(text("select * from vagas"))
+		vagas = []
+
+		for vaga in resultado.all():
+			vagas.append(vaga._asdict())
+		
+		return vagas
