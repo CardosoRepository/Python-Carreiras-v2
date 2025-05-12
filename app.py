@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, render_template
+import sqlite3
 
 app = Flask(__name__)
+conn = sqlite3.connect('carreiras-python.db')
 
 VAGAS = [{
     'id': 1,
