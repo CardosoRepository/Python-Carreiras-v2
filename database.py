@@ -8,18 +8,17 @@ load_dotenv()
 string_conexao = os.getenv("db_conexao_string")
 engine = create_engine(string_conexao)
 
-with engine.connect() as conn:
-    conn.execute(text("""
-        CREATE TABLE IF NOT EXISTS vagas (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            titulo VARCHAR(250) NOT NULL,
-            localidade VARCHAR(250) NOT NULL,
-            salario INT,
-            moeda VARCHAR(10),
-            responsabilidades VARCHAR(2000)
-        )
-    """))
-	
+# Executa o schema.sql
+def cria_tabelas():
+    with engine.connect() as conn:
+        with open('schema.sql', 'r', encoding='utf-8') as f:
+            sql_script = f.read()
+
+        comandos = [comando.strip() for comando in sql_script.split(';') if comando.strip()]
+        for comando in comandos:
+            conn.execute(text(comando))
+
+			
 def carrega_vagas_db():
 	with engine.connect() as conn:
 		resultado = conn.execute(text("select * from vagas"))
@@ -43,3 +42,19 @@ def carrega_vaga_db(id):
 			return None
 		else:
 			return dict(registro[0])
+		
+def adiciona_inscricao(id_vaga, dados):
+	with engine.begin() as conn:
+		query = text("""
+			INSERT INTO inscricoes (vaga_id, nome, email, linkedin, experiencia)
+			VALUES (:vaga_id, :nome, :email, :linkedin, :experiencia)
+		""")
+		conn.execute(
+			query, {
+				'vaga_id': id_vaga,
+				'nome': dados['nome'],
+				'email': dados['email'],
+				'linkedin': dados['linkedin'],
+				'experiencia': dados['experiencia']
+            }
+        )
